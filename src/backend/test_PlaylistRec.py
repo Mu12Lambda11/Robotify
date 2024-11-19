@@ -1,30 +1,51 @@
 import unittest
-import PlaylistRec  # Make sure PlaylistRec is correctly imported
+from PlaylistRec import playlist_rec
 
 class TestPlaylistRec(unittest.TestCase):
-    def test_playlist_rec_with_empty_list(self):
+    def test_empty_list(self):
+        # Test with an empty list
         playlist_tracks = []
-        result = PlaylistRec.playlist_rec(playlist_tracks)[0]  # Access first element
-        expected_prompt = """Use the following tracklist to produce a Spotify-based playlist of similar songs or recommended songs.
+        expected_tracklist = ""
+        expected_prompt = (
+            """Use the following tracklist to produce a spotify-based playlist of similar songs or recommended songs.
             Do not include a title for the playlist, include only the songs.
-            Format the songs as following without deviation:  Title /// Album ### Artist (Year)\n\n"""
-        self.assertEqual(result.strip(), expected_prompt.strip())
+            Format the songs as following without deviation:  Title /// Album ### Artist (Year)""",
+            expected_tracklist
+        )
+        result = playlist_rec(playlist_tracks)
+        self.assertEqual(result, expected_prompt)
 
-    def test_playlist_rec_with_one_track(self):
-        playlist_tracks = ["Track1 /// Album1 ### Artist1 (2023)"]
-        result = PlaylistRec.playlist_rec(playlist_tracks)[0]  # Access first element
-        expected_prompt = """Use the following tracklist to produce a Spotify-based playlist of similar songs or recommended songs.
+    def test_single_track(self):
+        # Test with a single track
+        playlist_tracks = ["Song 1 /// Album A ### Artist X (2000)"]
+        expected_tracklist = "Song 1 /// Album A ### Artist X (2000)"
+        expected_prompt = (
+            """Use the following tracklist to produce a spotify-based playlist of similar songs or recommended songs.
             Do not include a title for the playlist, include only the songs.
-            Format the songs as following without deviation:  Title /// Album ### Artist (Year)\n\nTrack1 /// Album1 ### Artist1 (2023)"""
-        self.assertEqual(result.strip(), expected_prompt.strip())
+            Format the songs as following without deviation:  Title /// Album ### Artist (Year)""",
+            expected_tracklist
+        )
+        result = playlist_rec(playlist_tracks)
+        self.assertEqual(result, expected_prompt)
 
-    def test_playlist_rec_with_multiple_tracks(self):
-        playlist_tracks = ["Track1 /// Album1 ### Artist1 (2023)", "Track2 /// Album2 ### Artist2 (2024)"]
-        result = PlaylistRec.playlist_rec(playlist_tracks)[0]  # Access first element
-        expected_prompt = """Use the following tracklist to produce a Spotify-based playlist of similar songs or recommended songs.
+    def test_multiple_tracks(self):
+        # Test with multiple tracks
+        playlist_tracks = [
+            "Song 1 /// Album A ### Artist X (2000)",
+            "Song 2 /// Album B ### Artist Y (2005)",
+            "Song 3 /// Album C ### Artist Z (2010)"
+        ]
+        expected_tracklist = "Song 1 /// Album A ### Artist X (2000)\n" \
+                             "Song 2 /// Album B ### Artist Y (2005)\n" \
+                             "Song 3 /// Album C ### Artist Z (2010)"
+        expected_prompt = (
+            """Use the following tracklist to produce a spotify-based playlist of similar songs or recommended songs.
             Do not include a title for the playlist, include only the songs.
-            Format the songs as following without deviation:  Title /// Album ### Artist (Year)\n\nTrack1 /// Album1 ### Artist1 (2023)\nTrack2 /// Album2 ### Artist2 (2024)"""
-        self.assertEqual(result.strip(), expected_prompt.strip())
+            Format the songs as following without deviation:  Title /// Album ### Artist (Year)""",
+            expected_tracklist
+        )
+        result = playlist_rec(playlist_tracks)
+        self.assertEqual(result, expected_prompt)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
