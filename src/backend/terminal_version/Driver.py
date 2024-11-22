@@ -2,9 +2,25 @@ import Questionnaire
 import PlaylistRec
 import ArtistRec
 import AccountRec
+
+import os
+import sys
+
+# getting the name of the directory
+# where the this file is present.
+current = os.path.dirname(os.path.realpath(__file__))
+
+# Getting the parent directory name
+# where the current directory is present.
+parent = os.path.dirname(current)
+
+# adding the parent directory to 
+# the sys.path.
+sys.path.append(parent)
+
+#Must add backend folder to the syspath to allow the driver file to import from the backend parent folder
 import GeminiConnect
 import SpotifyConnect
-import os
 
 #Main method used to first select which generation class to will be used,
 #then prompt Gemini API for a playlist, then prompt Spotify API to generate the playlist
@@ -67,7 +83,7 @@ def use_spotify(song_list,my_spotify):
 #Allows the user to perform a "logout" by just deleting the .cache file, and restarting the program    
 def logout_user():
     dir_path=os.getcwd()
-    cache_path=dir_path+"/.cache"
+    cache_path=dir_path+"/src/backend/.cache"
     #delete .cache file
     os.remove(cache_path)
     
