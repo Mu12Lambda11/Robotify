@@ -1,7 +1,8 @@
 import Questionnaire2
-import PlaylistRec
-import ArtistRec
-import AccountRec
+import ArtistRec2
+#Terminal versions provide the same functionality, so there's no need for a modified duplicate
+from terminal_version import PlaylistRec
+from terminal_version import AccountRec
 import GeminiConnect
 import SpotifyConnect
 import os
@@ -41,17 +42,14 @@ def use_spotify(song_list,my_spotify):
 #Allows the user to perform a "logout" by just deleting the .cache file, and restarting the program    
 def logout_user():
     dir_path=os.getcwd()
-    cache_path=dir_path+"/.cache"
+    cache_path=dir_path+"/src/backend/.cache"
     #delete .cache file
     os.remove(cache_path)
-    
-    #restart the program
-    main()
  
 #JSON function to meant to receive user input questionnaire data
 # from the front end, then generate a prompt, and then use Gemini 
 # and Spotify.
-#@param Data List: inputData   
+#@param Dictionary: data   
 @app.route('/use-questionnaire', methods=['POST'])
 def use_questionnaire():
     input_data = request.json.get('data')
@@ -60,7 +58,54 @@ def use_questionnaire():
     response = use_gemini(prompt)
     print(response)
     
-    #use_spotify(response,my_spotify)
+    use_spotify(response,my_spotify)
+    
+    return jsonify(response)
+#JSON function to meant to receive user input playlist data
+# from the front end, then generate a prompt, and then use Gemini 
+# and Spotify.
+#@param String: playlist_name   
+@app.route('/use-playlist', methods=['POST'])
+def use_playlist():
+    playlist_name = request.json.get('playlist_name')
+    prompt=PlaylistRec.playlist_rec()
+    
+    response = use_gemini(prompt)
+    print(response)
+    
+    use_spotify(response,my_spotify)
+    
+    return jsonify(response)
+#JSON function to meant to simply send back the results of the prompt.
+#The artist data is gathered in from Spotify without needing specific input
+#from the front-end.
+@app.route('/use-account', methods=['POST'])
+def use_account():
+    
+    top_artists=my_spotify.get_user_top_artists()
+        
+    prompt=AccountRec.account_rec(top_artists)
+    
+    response = use_gemini(prompt)
+    print(response)
+    
+    use_spotify(response,my_spotify)
+    
+    return jsonify(response)
+
+#JSON function to meant to receive user input questionnaire data
+# from the front end, then generate a prompt, and then use Gemini 
+# and Spotify.
+#@param Dictionary: inputData   
+@app.route('/use-artist', methods=['POST'])
+def use_artist():
+    artist_name = request.json.get('artist')
+    prompt=ArtistRec2.artist_rec(artist_name)
+    
+    response = use_gemini(prompt)
+    print(response)
+    
+    use_spotify(response,my_spotify)
     
     return jsonify(response)
     
