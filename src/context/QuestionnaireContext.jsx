@@ -11,6 +11,7 @@ export const QuestionnaireProvider = ({ children }) => {
     musicVibes: [],
     musicAge: "no preference",
   });
+  
 
   const handleCheckboxChange = (e) => {
     const isChecked = e.target.checked
