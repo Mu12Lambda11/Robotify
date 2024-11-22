@@ -30,6 +30,10 @@ const ArtistQuestion = () => {
     }))
   };
 
+  useEffect(() => {
+    setArtists(data.favArtists)
+  })
+
   return (
     <div>
       <h1>Please type in some of your favorite artists</h1>

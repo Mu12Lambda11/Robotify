@@ -14,6 +14,7 @@ const NameQuestion = () => {
         type="text"
         className="inputBar"
         name="name"
+        value={data.name}
         onChange={handleChange}
       />
     </div>

@@ -5,11 +5,11 @@ const QuestionnaireContext = createContext({});
 export const QuestionnaireProvider = ({ children }) => {
   const [page, setPage] = useState(0);
   const [data, setData] = useState({
-    name: "Stranger",
+    name: "",
     favGenres: [],
     favArtists: [],
     musicVibes: [],
-    musicAge: "no preference",
+    musicAge: "new",
   });
 
   const handleCheckboxChange = (e) => {
@@ -53,7 +53,10 @@ export const QuestionnaireProvider = ({ children }) => {
 
   ///const { name, ...requiredInputs } = data; 
 
-  const canSubmit = page === 4
+  //Represents if all the needed data is present
+  const allInfoPresent = data.name !== "" && data.favGenres.length > 0 && data.favArtists.length > 0 && data.musicVibes.length > 0 && data.musicAge !== "";
+
+  const canSubmit = page === 4 && allInfoPresent;
 
   const canNext = page != 4;
   const canPrev = page != 0;

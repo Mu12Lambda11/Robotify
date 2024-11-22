@@ -11,7 +11,7 @@ const AgeQuestion = () => {
     return (
       <div>
           <h1>I tend to prefer...</h1>
-          <select onChange={handleChange}>
+          <select onChange={handleChange} name="musicAge" defaultValue={data.musicAge?data.musicAge:"new"}>
             <option onSelect={handleChange} value="new" >The latest songs🌟</option>
             <option onSelect={handleChange} value="old" >Throwbacks🕰️</option>
             <option onSelect={handleChange} value="mix" >A mix of both🎨</option>

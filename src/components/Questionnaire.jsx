@@ -21,8 +21,10 @@ const Questionnaire = () => {
     <form onSubmit={handleSubmit}>
       <header>
         <h2>{title}</h2>
-
-        <div className="button-container">
+      </header>
+      <QuestionInputs />
+      <br /> <br />
+      <div className="button-container">
           <button type="button" className="button" onClick={handlePrev} disabled={!canPrev}>
             Prev
           </button>
@@ -35,8 +37,6 @@ const Questionnaire = () => {
             Generate Playlist!
           </button>
         </div>
-      </header>
-      <QuestionInputs />
     </form>
   );
 };
