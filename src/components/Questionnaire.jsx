@@ -15,16 +15,26 @@ const Questionnaire = () => {
     e.preventDefault();
 
     //Here I want to send the data to the Gemini API to be able to generate the playlist
+    fetch(`http://localhost:5000/use-questionnaire`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ data }),
+    })
+    .then(response => response.json())
+    .then(result => {
+      console.log(result);
+    })
+    .catch(error => console.error('Error:', error));
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <header>
         <h2>{title}</h2>
-      </header>
-      <QuestionInputs />
-      <br /> <br />
-      <div className="button-container">
+
+        <div className="button-container">
           <button type="button" className="button" onClick={handlePrev} disabled={!canPrev}>
             Prev
           </button>
@@ -37,6 +47,8 @@ const Questionnaire = () => {
             Generate Playlist!
           </button>
         </div>
+      </header>
+      <QuestionInputs />
     </form>
   );
 };

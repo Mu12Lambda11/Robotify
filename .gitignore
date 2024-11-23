@@ -1,3 +1,6 @@
+#Environment Variables
+creds.py
+
 # Logs
 logs
 *.log
