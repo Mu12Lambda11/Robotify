@@ -67,16 +67,9 @@ class SpotifyConnect:
             #print(f"Result: {result}")
             
             if result['tracks']['items']:
-                # Filter results by album and year if provided
-                filtered_tracks = [
-                track for track in result['tracks']['items']
-                if (song['album'].lower() in track['album']['name'].lower() if song['album'] else True) and
-                   (str(song['year']) in track['album']['release_date'] if song['year'] else True)
-                ]
-                if filtered_tracks:
-                    song_uris.append(result['tracks']['items'][0]['uri'])
-                else:
-                    print(f"No results found for {song['title']} - {song['artist']} ({song['year']})")
+                song_uris.append(result['tracks']['items'][0]['uri'])
+            else:
+                print(f"No results found for {song['title']} - {song['artist']} ({song['year']})")
         
         user_id = self.sp.current_user()['id']
         user_playlist_name=input("Please enter in a name for the finished playlist.")
