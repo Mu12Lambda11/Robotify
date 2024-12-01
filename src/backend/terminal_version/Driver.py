@@ -53,11 +53,8 @@ def main():
     elif user_input==5:
         logout_user()
 
-        
-    response = use_gemini(prompt)
-    print(response)
-    
-    use_spotify(response,my_spotify)
+    #Use the Gemini and Spotify APIs. This is the last step.    
+    use_APIs(prompt,my_spotify)
 
 #@param String:prompt
 #@return String: GeminiConnect.generate_playlist
@@ -69,16 +66,40 @@ def use_gemini(prompt):
 #Used to parse through the Gemini generated string of songs to create an array of songs
 #specifying title, artist, and year. Afterwards, use Spotify API to search for the songs
 #and generate a playlist on the account.
+#Now checks for correct formatting of the song_list.
 def use_spotify(song_list,my_spotify):
     songs=[]
-    for line in song_list.strip().split('\n'):
-        title, rest = line.split(' /// ')
-        album, rest = rest.split(' ### ')
-        artist, year = rest.split(' (')
-        year = year.rstrip(')')
-        songs.append({'artist': artist, "title": title, "album":album, "year": year})
+    correct_format=False
+    try:
+        for line in song_list.strip().split('\n'):
+            title, rest = line.split(' /// ')
+            album, rest = rest.split(' ### ')
+            artist, year = rest.split(' (')
+            year = year.rstrip(')')
+            songs.append({'artist': artist, "title": title, "album":album, "year": year})
+        
+        my_spotify.search_songs(songs)
+        #Formatting is correct, no need to retry the process
+        correct_format=True
+        return correct_format
+    except:
+        #Formatting is incorrect, retry the process
+        print("Incorrect format")
+        
+        return correct_format
+
+
+#Function that uses both APIs, and loops until a valid gemini response is created for use_spotify.
+#Implemented primarily to avoid multiple instances of the same code across the prompt-making functions.
+def use_APIs(prompt,spotify_instance):
+    spotifyCheck=False
     
-    my_spotify.search_songs(songs)
+    while spotifyCheck==False:
+        response = use_gemini(prompt)
+        print(response)
+        
+        spotifyCheck=use_spotify(response,spotify_instance)
+    
    
 #Allows the user to perform a "logout" by just deleting the .cache file, and restarting the program    
 def logout_user():

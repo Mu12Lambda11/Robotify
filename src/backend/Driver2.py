@@ -28,18 +28,42 @@ def use_gemini(prompt):
 #Used to parse through the Gemini generated string of songs to create an array of songs
 #specifying title, artist, and year. Afterwards, use Spotify API to search for the songs
 #and generate a playlist on the account.
+#Now checks for correct formatting of the song_list.
 def use_spotify(song_list,my_spotify):
     songs=[]
-    for line in song_list.strip().split('\n'):
-        title, rest = line.split(' /// ')
-        album, rest = rest.split(' ### ')
-        artist, year = rest.split(' (')
-        year = year.rstrip(')')
-        songs.append({'artist': artist, "title": title, "album":album, "year": year})
+    correct_format=False
+    try:
+        for line in song_list.strip().split('\n'):
+            title, rest = line.split(' /// ')
+            album, rest = rest.split(' ### ')
+            artist, year = rest.split(' (')
+            year = year.rstrip(')')
+            songs.append({'artist': artist, "title": title, "album":album, "year": year})
+        
+        my_spotify.search_songs(songs)
+        #Formatting is correct, no need to retry the process
+        correct_format=True
+        return correct_format
+    except:
+        #Formatting is incorrect, retry the process
+        print("Incorrect format")
+        
+        return correct_format
+
+#Function that uses both APIs, and loops until a valid gemini response is created for use_spotify.
+#Implemented primarily to avoid multiple instances of the same code across the prompt-making functions.
+def use_APIs(prompt):
+    spotifyCheck=False
     
-    my_spotify.search_songs(songs)
+    while spotifyCheck==False:
+        response = use_gemini(prompt)
+        print(response)
+        
+        spotifyCheck=use_spotify(response,my_spotify)
+    return response
    
-#Allows the user to perform a "logout" by just deleting the .cache file, and restarting the program    
+#Allows the user to perform a "logout" by just deleting the .cache file, and restarting the program 
+@app.route('/logout-user', methods=['POST'])   
 def logout_user():
     dir_path=os.getcwd()
     cache_path=dir_path+"/src/backend/.cache"
@@ -55,10 +79,7 @@ def use_questionnaire():
     input_data = request.json.get('data')
     prompt = Questionnaire2.questionnaire(input_data)
     
-    response = use_gemini(prompt)
-    print(response)
-    
-    use_spotify(response,my_spotify)
+    response = use_APIs(prompt)
     
     return jsonify(response)
 #JSON function to meant to receive user input playlist data
@@ -70,10 +91,7 @@ def use_playlist():
     playlist_name = request.json.get('playlist_name')
     prompt=PlaylistRec.playlist_rec()
     
-    response = use_gemini(prompt)
-    print(response)
-    
-    use_spotify(response,my_spotify)
+    response = use_APIs(prompt)
     
     return jsonify(response)
 #JSON function to meant to simply send back the results of the prompt.
@@ -86,10 +104,7 @@ def use_account():
         
     prompt=AccountRec.account_rec(top_artists)
     
-    response = use_gemini(prompt)
-    print(response)
-    
-    use_spotify(response,my_spotify)
+    response = use_APIs(prompt)
     
     return jsonify(response)
 
@@ -102,10 +117,7 @@ def use_artist():
     artist_name = request.json.get('artist')
     prompt=ArtistRec2.artist_rec(artist_name)
     
-    response = use_gemini(prompt)
-    print(response)
-    
-    use_spotify(response,my_spotify)
+    response = use_APIs(prompt)
     
     return jsonify(response)
     
