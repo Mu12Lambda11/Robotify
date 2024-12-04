@@ -10,6 +10,7 @@ from urllib.parse import quote
 
 #Used for cache file purposes
 import os
+from pathlib import Path
 
 from spotipy.oauth2 import SpotifyOAuth
 
@@ -18,8 +19,12 @@ class SpotifyConnect:
         #Generate a state. This helps to protect the security of API calls.
         gen_state=''.join(random.choices(string.ascii_letters,k=16))
         
-        dir_path=os.getcwd()
-        cache_path=dir_path+"/src/backend/.cache"
+        dir_path=Path(__file__).resolve()
+        dir_path=os.path.dirname(dir_path)
+
+        
+        cache_path=dir_path+"/.cache"
+        print(cache_path)
         
         self.auth_manager = SpotifyOAuth(client_id=creds.spotipy_client_id,
                                          client_secret=creds.spotipy_client_secret,
