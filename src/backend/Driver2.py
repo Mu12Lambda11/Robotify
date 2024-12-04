@@ -14,8 +14,8 @@ from flask_cors import CORS
 app=Flask(__name__)
 CORS(app)
 
-#Initialize SpotifyConnect object
-my_spotify = SpotifyConnect.SpotifyConnect()
+#Initialize SpotifyConnect object to null
+my_spotify = None
 
 
 #@param String:prompt
@@ -55,6 +55,10 @@ def use_spotify(song_list,my_spotify):
 def use_APIs(prompt):
     spotifyCheck=False
     
+    #Initialize SpotifyConnect object
+    global my_spotify
+    my_spotify= SpotifyConnect.SpotifyConnect()
+    
     while spotifyCheck==False:
         response = use_gemini(prompt)
         print(response)
@@ -76,6 +80,10 @@ def logout_user():
 #@param Dictionary: data   
 @app.route('/use-questionnaire', methods=['POST'])
 def use_questionnaire():
+    #Initialize SpotifyConnect object
+    global my_spotify
+    my_spotify= SpotifyConnect.SpotifyConnect()
+    
     input_data = request.json.get('data')
     prompt = Questionnaire2.questionnaire(input_data)
     
@@ -102,6 +110,7 @@ def use_questionnaire_offline():
 #@param String: playlist_name   
 @app.route('/use-playlist', methods=['POST'])
 def use_playlist():
+    
     playlist_name = request.json.get('playlist_name')
     prompt=PlaylistRec.playlist_rec()
     
