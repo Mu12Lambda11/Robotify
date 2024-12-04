@@ -82,6 +82,20 @@ def use_questionnaire():
     response = use_APIs(prompt)
     
     return jsonify(response)
+
+#JSON function to meant to receive user input questionnaire data
+# from the front end, then generate a prompt, and then use only Gemini,
+# not Spotify.
+#@param Dictionary: data   
+@app.route('/use-questionnaire-offline', methods=['POST'])
+def use_questionnaire_offline():
+    input_data = request.json.get('data')
+    prompt = Questionnaire2.questionnaire(input_data)
+    
+    response = use_gemini(prompt)
+    
+    return jsonify(response)
+
 #JSON function to meant to receive user input playlist data
 # from the front end, then generate a prompt, and then use Gemini 
 # and Spotify.
