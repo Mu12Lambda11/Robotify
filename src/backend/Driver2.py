@@ -31,6 +31,7 @@ def use_gemini(prompt):
 def use_spotify(song_list,my_spotify):
     songs=[]
     for line in song_list.strip().split('\n'):
+        print("line is", line)
         title, rest = line.split(' /// ')
         album, rest = rest.split(' ### ')
         artist, year = rest.split(' (')
