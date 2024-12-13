@@ -48,7 +48,7 @@ def has_spotify_account():
     #Initialize SpotifyConnect object
     my_spotify = SpotifyConnect.SpotifyConnect()
 
-    user_input = int(input("Please enter a number: 1. Questionnaire, 2. Playlist , 4. Artist, 5. Spotify Account 6.Logout \n"))
+    user_input = int(input("Please enter a number: 1. Questionnaire, 2. Playlist , 4. Artist, 5.Logout \n"))
     
     prompt=""
     
@@ -71,9 +71,10 @@ def has_spotify_account():
     #Logout case
     elif user_input==5:
         logout_user()
-
-    #Use the Gemini and Spotify APIs. This is the last step.    
-    use_APIs(prompt,my_spotify)    
+        
+    if user_input!=5:
+        #Use the Gemini and Spotify APIs. This is the last step.    
+        use_APIs(prompt,my_spotify)    
     
 #@param String:prompt
 #@return String: GeminiConnect.generate_playlist
