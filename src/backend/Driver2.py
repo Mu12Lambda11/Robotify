@@ -3,6 +3,10 @@ import ArtistRec2
 #Terminal versions provide the same functionality, so there's no need for a modified duplicate
 from terminal_version import PlaylistRec
 from terminal_version import AccountRec
+import spotipy
+import spotipy.oauth2
+from spotipy.oauth2 import SpotifyClientCredentials
+import creds
 import GeminiConnect
 import SpotifyConnect
 import os
@@ -14,8 +18,12 @@ from flask_cors import CORS
 app=Flask(__name__)
 CORS(app)
 
-#Initialize SpotifyConnect object
-my_spotify = SpotifyConnect.SpotifyConnect()
+#Initialize SpotifyConnect object to null
+my_spotify = None
+
+#Connect the Spotify dev account
+dev_creds = SpotifyClientCredentials(client_id=creds.spotipy_client_id, client_secret=creds.spotipy_client_secret)
+dev_spotify = spotipy.Spotify(client_credentials_manager = dev_creds)
 
 
 #@param String:prompt
@@ -28,19 +36,72 @@ def use_gemini(prompt):
 #Used to parse through the Gemini generated string of songs to create an array of songs
 #specifying title, artist, and year. Afterwards, use Spotify API to search for the songs
 #and generate a playlist on the account.
+#Now checks for correct formatting of the song_list.
 def use_spotify(song_list,my_spotify):
     songs=[]
-    for line in song_list.strip().split('\n'):
-        print("line is", line)
-        title, rest = line.split(' /// ')
-        album, rest = rest.split(' ### ')
-        artist, year = rest.split(' (')
-        year = year.rstrip(')')
-        songs.append({'artist': artist, "title": title, "album":album, "year": year})
+    correct_format=False
+    try:
+        for line in song_list.strip().split('\n'):
+            title, rest = line.split(' /// ')
+            album, rest = rest.split(' ### ')
+            artist, year = rest.split(' (')
+            year = year.rstrip(')')
+
+            songs.append({'artist': artist, "title": title, "album":album, "year": year})
+        
+        my_spotify.search_songs(songs)
+        #Formatting is correct, no need to retry the process
+        correct_format=True
+        return correct_format
+    except:
+        #Formatting is incorrect, retry the process
+        print("Incorrect format")
+        
+        return correct_format
     
-    my_spotify.search_songs(songs)
+#@param String: song_list   
+#Used to go through the AI generated list of songs, then use the spotipy credentials to find the cover URLs for the song
+def find_cover_art(song_list):
+    print("trying to find cover art")
+    songs = []
+    for line in song_list.strip().split('\n'):
+            title, rest = line.split(' /// ')
+            album, rest = rest.split(' ### ')
+            artist, year = rest.split(' (')
+            year = year.rstrip(')')
+
+            try:
+                album_search_results = dev_spotify.search(q=f'artist:{artist} album:{album}', type='album' , limit=1)
+                albumURL = album_search_results['albums']['items'][0]['images'][0]['url']
+            except:
+                albumURL = "https://img.freepik.com/free-vector/colorful-ring-gradient-element_53876-118490.jpg?t=st=1733390659~exp=1733394259~hmac=ec8dc1c41d611b3f8a4053634dbd5d9572c9a2562719bb63b5f0158c950b5e6f&w=740"
+
+            print("album url is", albumURL)
+            songs.append({'artist': artist, "title": title, "album":album, "year": year, "albumURL": albumURL})
+        
+    #Formatting is correct, no need to retry the process
+    return songs
+
+
+
+#Function that uses both APIs, and loops until a valid gemini response is created for use_spotify.
+#Implemented primarily to avoid multiple instances of the same code across the prompt-making functions.
+def use_APIs(prompt):
+    spotifyCheck=False
+    
+    #Initialize SpotifyConnect object
+    global my_spotify
+    my_spotify= SpotifyConnect.SpotifyConnect()
+    
+    while spotifyCheck==False:
+        response = use_gemini(prompt)
+        print(response)
+        
+        spotifyCheck=use_spotify(response,my_spotify)
+    return response
    
-#Allows the user to perform a "logout" by just deleting the .cache file, and restarting the program    
+#Allows the user to perform a "logout" by just deleting the .cache file, and restarting the program 
+@app.route('/logout-user', methods=['POST'])   
 def logout_user():
     dir_path=os.getcwd()
     cache_path=dir_path+"/src/backend/.cache"
@@ -53,46 +114,76 @@ def logout_user():
 #@param Dictionary: data   
 @app.route('/use-questionnaire', methods=['POST'])
 def use_questionnaire():
+    #Initialize SpotifyConnect object
+    global my_spotify
+    my_spotify= SpotifyConnect.SpotifyConnect()
+    
+    input_data = request.json.get('data')
+    prompt = Questionnaire2.questionnaire(input_data)
+
+    
+    response = use_APIs(prompt)
+    response_with_pics = find_cover_art(response)
+
+
+    print(response)
+    print(response_with_pics)
+
+    #here, we want to call a function that would fetch the album cover, and add them to the result
+    
+    return jsonify(response_with_pics)
+
+#JSON function to meant to receive user input questionnaire data
+# from the front end, then generate a prompt, and then use only Gemini,
+# not Spotify.
+#@param Dictionary: data   
+@app.route('/use-questionnaire-offline', methods=['POST'])
+def use_questionnaire_offline():
     input_data = request.json.get('data')
     prompt = Questionnaire2.questionnaire(input_data)
     
     response = use_gemini(prompt)
-    print(response)
-    
-    use_spotify(response,my_spotify)
-    
-    return jsonify(response)
+    response_with_pics = find_cover_art(response)
+
+    return jsonify(response_with_pics)
+
 #JSON function to meant to receive user input playlist data
 # from the front end, then generate a prompt, and then use Gemini 
 # and Spotify.
 #@param String: playlist_name   
 @app.route('/use-playlist', methods=['POST'])
 def use_playlist():
+    global my_spotify
+    my_spotify= SpotifyConnect.SpotifyConnect()
     playlist_name = request.json.get('playlist_name')
-    prompt=PlaylistRec.playlist_rec()
+
+    #my_playlists = my_spotify.get_playlists()
+    playlist_tracks = my_spotify.get_user_playlist(playlist_name)
+    prompt=PlaylistRec.playlist_rec(playlist_tracks)
+
+
     
-    response = use_gemini(prompt)
-    print(response)
+    response = use_APIs(prompt)
+    response_with_pics = find_cover_art(response)
     
-    use_spotify(response,my_spotify)
-    
-    return jsonify(response)
+    return jsonify(response_with_pics)
 #JSON function to meant to simply send back the results of the prompt.
 #The artist data is gathered in from Spotify without needing specific input
 #from the front-end.
 @app.route('/use-account', methods=['POST'])
 def use_account():
+    global my_spotify
+    my_spotify= SpotifyConnect.SpotifyConnect()
+
     
     top_artists=my_spotify.get_user_top_artists()
         
     prompt=AccountRec.account_rec(top_artists)
     
-    response = use_gemini(prompt)
-    print(response)
+    response = use_APIs(prompt)
+    response_with_pics = find_cover_art(response)
     
-    use_spotify(response,my_spotify)
-    
-    return jsonify(response)
+    return jsonify(response_with_pics)
 
 #JSON function to meant to receive user input questionnaire data
 # from the front end, then generate a prompt, and then use Gemini 
@@ -103,12 +194,10 @@ def use_artist():
     artist_name = request.json.get('artist')
     prompt=ArtistRec2.artist_rec(artist_name)
     
-    response = use_gemini(prompt)
-    print(response)
-    
-    use_spotify(response,my_spotify)
-    
-    return jsonify(response)
+    response = use_APIs(prompt)
+    response_with_pics = find_cover_art(response)
+
+    return jsonify(response_with_pics)
     
 if __name__ == '__main__':
     app.run(debug=True,port=5000)

@@ -10,16 +10,31 @@ from urllib.parse import quote
 
 #Used for cache file purposes
 import os
+from pathlib import Path
+
+#Used to use AI to name the playlist
+import GeminiConnect
 
 from spotipy.oauth2 import SpotifyOAuth
+
+import google.generativeai as genai
+
+my_api_key= creds.gemini_api_key
+genai.configure(api_key=my_api_key)
+model = genai.GenerativeModel('gemini-pro')
+
 
 class SpotifyConnect:
     def __init__(self):
         #Generate a state. This helps to protect the security of API calls.
         gen_state=''.join(random.choices(string.ascii_letters,k=16))
         
-        dir_path=os.getcwd()
-        cache_path=dir_path+"/src/backend/.cache"
+        dir_path=Path(__file__).resolve()
+        dir_path=os.path.dirname(dir_path)
+
+        
+        cache_path=dir_path+"/.cache"
+        print(cache_path)
         
         self.auth_manager = SpotifyOAuth(client_id=creds.spotipy_client_id,
                                          client_secret=creds.spotipy_client_secret,
@@ -55,6 +70,7 @@ class SpotifyConnect:
     #Searches for the songs in spotify's database, and adds them to a list of uris if found
     #Afterwards, generates a playlist using these found songs.
     def search_songs(self, songs_array):
+        print("searching songs")
         self.check_and_refresh_token()  # Ensure token is valid before making requests
         song_uris = []
         for song in songs_array:
@@ -67,19 +83,25 @@ class SpotifyConnect:
             #print(f"Result: {result}")
             
             if result['tracks']['items']:
-                # Filter results by album and year if provided
-                filtered_tracks = [
-                track for track in result['tracks']['items']
-                if (song['album'].lower() in track['album']['name'].lower() if song['album'] else True) and
-                   (str(song['year']) in track['album']['release_date'] if song['year'] else True)
-                ]
-                if filtered_tracks:
-                    song_uris.append(result['tracks']['items'][0]['uri'])
-                else:
-                    print(f"No results found for {song['title']} - {song['artist']} ({song['year']})")
+                song_uris.append(result['tracks']['items'][0]['uri'])
+                #here i will try to get the url for the cover art
+
+            else:
+                print(f"No results found for {song['title']} - {song['artist']} ({song['year']})")
         
         user_id = self.sp.current_user()['id']
-        user_playlist_name=input("Please enter in a name for the finished playlist.")
+        print("done searching all the songs")
+        
+        #Name the playlist using AI
+        prompt = "Please name this playlist. Give it a fun name that's not too cringy."
+        prompt += "The songs in this playlist are as follows: " + str(songs_array)
+        print("prompt to name the playlist", prompt)
+        try:
+            response=model.generate_content(prompt)
+            user_playlist_name=response.text 
+        except Exception as e:
+            user_playlist_name =" My AI Generated Playlist"
+
         playlist = self.sp.user_playlist_create(user=user_id, name=user_playlist_name, public=True)
         self.sp.playlist_add_items(playlist_id=playlist['id'], items=song_uris)
         print("Playlist has been generated! Check Spotify!")
@@ -95,11 +117,11 @@ class SpotifyConnect:
         tracks = [f"{track['track']['name']} by {track['track']['artists'][0]['name']}" for track in results['items']]
         return tracks
     
-    def get_user_playlist(self):
+    def get_user_playlist(self, playlist_name):
+        print("looking for playlist named", playlist_name)
         user_playlists=self.get_playlists()
-
-        user_input = input("Enter the name of the playlist in your library")
-        matched_playlist = next((pl for pl in user_playlists if user_input.lower() in pl[0].lower()), None)
+        #user_input = input("Enter the name of the playlist in your library")
+        matched_playlist = next((pl for pl in user_playlists if playlist_name.lower() in pl[0].lower()), None)
 
         if matched_playlist:
             playlist_url= matched_playlist[1]
@@ -118,6 +140,7 @@ class SpotifyConnect:
         user_top_tracks=self.sp.current_user_top_tracks(limit=10)
         tracks_info=[(track['name']) for track in user_top_tracks['items']]
         return tracks_info
+    
 
 
 

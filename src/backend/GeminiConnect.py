@@ -20,4 +20,4 @@ def generate_playlist(prompt):
         
         return generated_text
     except Exception as e:
-        return "Error fetching calculations:{e}"
+        return "Error fetching playlists:{e}"

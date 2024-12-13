@@ -162,3 +162,82 @@ h1{
 button{
   margin-left:10px;
 }
+
+  .song{
+    position:relative;
+    width:100%;
+    height:100%;
+    background-color:white;
+    border-radius: 20px;
+    height:30vh;
+    margin-top:1vh;
+    margin-left: 1vh;
+    font-size: 1rem;
+    max-height:200px;
+    box-sizing: border-box;
+    min-height:150px;
+    display:flex;
+
+  }
+  .songName{
+    align-self:center;  
+
+    position:absolute;
+    bottom:70%;
+    left: 35%;
+    font-size:1.5em;
+    text-align:center;
+  
+  }
+
+  .artistName{
+
+    position:absolute;
+    bottom: 60%;
+    left: 35%;
+  }
+  .albumName{
+
+    position:absolute;
+    bottom: 55%;
+    left: 35%;
+    object-fit:contain !important;
+
+  }
+  .songYear{
+    position:absolute;
+    bottom:45%;
+    left: 35%;
+    object-fit:contain;
+
+  }
+  .albumCover{
+    position:absolute;
+    align-self:center;  
+    left:2.5%;
+    width:30%;
+    max-width:150px;
+    max-height:150px;
+    min-width:100px;
+    min-width:100px;
+    object-fit:contain;
+  }
+
+  .playlistContainer{
+    position:relative;
+    display:flex;
+    flex-direction:row !important;
+    flex-wrap:wrap;
+    gap: 25px;
+    width: 100%;
+    justify-content:flex-start;
+  }
+
+.landingBtns button{
+  width: 500px;
+  height:80px;
+}
+.connectToSpotify{
+  background-color:#1f033e;
+  color: white;
+}

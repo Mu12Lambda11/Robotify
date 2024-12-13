@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from "react";
 
-const QuestionnaireContext = createContext({});
+export const QuestionnaireContext = createContext({});
 
 export const QuestionnaireProvider = ({ children }) => {
   const [page, setPage] = useState(0);
@@ -36,7 +36,6 @@ export const QuestionnaireProvider = ({ children }) => {
   }
 
   const handleChange = (e) => {
-    console.log("trying to handle a change")
     const type = e.target.type;
     const name = e.target.name;
     const value = e.target.value;

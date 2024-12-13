@@ -7,6 +7,9 @@ export const WebpageProvider = ({ children }) => {
   const [playlist, setPlaylist] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [hasSpotify, setHasSpotify] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [activity, setActivity] = useState(-1);
 
   return (
     <WebpageContext.Provider
@@ -19,6 +22,9 @@ export const WebpageProvider = ({ children }) => {
         setIsLoading,
         hasError,
         setHasError,
+        hasSpotify, setHasSpotify,
+        loggedIn, setLoggedIn,
+        activity, setActivity
       }}
     >
       {children}
